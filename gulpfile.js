@@ -26,7 +26,7 @@ function substitute(command, args = [], options, stdin) {
 
 exports.postversion = async function postversion () {
   const revision = await substitute('git', ['rev-list', '--tags', '--max-count=1']);
-  const latest = await substitute('git', ['describe', revision]);
+  const latest = await substitute('git', ['describe', '--tags', revision]);
   if (!/^v\d+\.\d+\.\d+$/.test(latest)) return;
   await substitute('git', ['tag', '-f',latest.substring(0, 2), revision]);
   await substitute('git', ['tag', '-f', latest.substring(0, 4), revision]);
