@@ -4,11 +4,9 @@ import { StaticCodeAnalyzer, Transformers, tool } from '@moneyforward/sca-action
 
 const debug = util.debuglog('eslint-action');
 
-export type Locale = 'US' | 'UK';
-
 export default class Analyzer extends StaticCodeAnalyzer {
   constructor(options: string[] = []) {
-    super('npx', ['eslint'].concat(options).concat(['-f', 'unix']), undefined, undefined);
+    super('npx', ['eslint'].concat(options).concat(['-f', 'unix']), undefined, 2, undefined, 'ESLint');
   }
 
   async prepare(): Promise<unknown> {
