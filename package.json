@@ -1,6 +1,6 @@
 {
   "name": "eslint-action",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Analyze code statically using ESLint in Github actions",
   "main": "dist/index.js",
   "scripts": {
