@@ -9,7 +9,7 @@ export default class Analyzer extends StaticCodeAnalyzer {
     super('npx', ['eslint'].concat(options).concat(['-f', 'unix']), undefined, 2, undefined, 'ESLint');
   }
 
-  async prepare(): Promise<unknown> {
+  protected async prepare(): Promise<unknown> {
     console.log('::group::Installing packages...');
     try {
       return tool.execute('npm', ['install']);
@@ -18,7 +18,7 @@ export default class Analyzer extends StaticCodeAnalyzer {
     }
   }
 
-  createTransformStreams(): Transformers {
+  protected createTransformStreams(): Transformers {
     const transformers = [
       new tool.LineTransformStream(),
       new stream.Transform({
