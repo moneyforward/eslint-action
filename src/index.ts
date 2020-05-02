@@ -1,7 +1,8 @@
 import Analyzer from './analyzer';
 
+console.log('::echo::%s', process.env['RUNNER_DEBUG'] === '1' ? 'on' : 'off');
 (async (): Promise<void> => {
-  const files = (process.env.INPUT_FILES || '.');
+  const files = process.env.INPUT_FILES || '.';
   const options = JSON.parse(process.env.INPUT_OPTIONS || '["--ext", ".js"]');
   const workingDirectory = process.env.INPUT_WORKING_DIRECTORY;
   workingDirectory && process.chdir(workingDirectory);
