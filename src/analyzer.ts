@@ -12,7 +12,7 @@ export default class Analyzer extends StaticCodeAnalyzer {
   protected async prepare(): Promise<unknown> {
     console.log('::group::Installing packages...');
     try {
-      return tool.execute('npm', ['install']);
+      return await tool.execute('npm', ['install']);
     } finally {
       console.log('::endgroup::');
     }
