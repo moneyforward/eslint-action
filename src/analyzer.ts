@@ -1,3 +1,4 @@
+import fs from 'fs';
 import stream from 'stream';
 import util from 'util';
 import { StaticCodeAnalyzer, Transformers, tool } from '@moneyforward/sca-action-core';
@@ -12,7 +13,8 @@ export default class Analyzer extends StaticCodeAnalyzer {
   protected async prepare(): Promise<unknown> {
     console.log('::group::Installing packages...');
     try {
-      return await tool.execute('npm', ['install']);
+      const [command, args] = fs.existsSync('yarn.lock') ? ['yarn', ['--frozen-lockfile']] : ['npm', ['ci']];
+      return await tool.execute(command, args);
     } finally {
       console.log('::endgroup::');
     }
