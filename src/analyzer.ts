@@ -1,7 +1,9 @@
 import fs from 'fs';
 import stream from 'stream';
 import util from 'util';
-import { StaticCodeAnalyzer, Transformers, tool } from '@moneyforward/sca-action-core';
+import Command from '@moneyforward/command';
+import StaticCodeAnalyzer from '@moneyforward/sca-action-core';
+import { Lines } from '@moneyforward/stream-util';
 
 const debug = util.debuglog('eslint-action');
 
@@ -10,22 +12,21 @@ export default class Analyzer extends StaticCodeAnalyzer {
     super('npx', ['eslint'].concat(options).concat(['-f', 'unix']), undefined, 2, undefined, 'ESLint');
   }
 
-  protected async prepare(): Promise<unknown> {
+  protected async prepare(): Promise<void> {
     console.log('::group::Installing packages...');
     try {
       const [command, args] = fs.existsSync('yarn.lock') ? ['yarn', ['--frozen-lockfile']] : ['npm', ['ci']];
-      return await tool.execute(command, args);
+      await Command.execute(command, args);
     } finally {
       console.log('::endgroup::');
     }
   }
 
-  protected createTransformStreams(): Transformers {
-    const transformers = [
-      new tool.LineTransformStream(),
+  protected createTransformStreams(): stream.Transform[] {
+    return [
+      new Lines(),
       new stream.Transform({
-        readableObjectMode: true,
-        writableObjectMode: true,
+        objectMode: true,
         transform: function (warning: string, _encoding, done): void {
           debug('%s', warning);
           const regex = /^(.+):(\d+):(\d+): (.+) \[(Error|Warning)(?:|\/(.+))\]$/;
@@ -41,7 +42,5 @@ export default class Analyzer extends StaticCodeAnalyzer {
         }
       })
     ];
-    transformers.reduce((prev, next) => prev.pipe(next));
-    return [transformers[0], transformers[transformers.length - 1]];
   }
 }
