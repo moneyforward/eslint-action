@@ -1,15 +1,46 @@
-import Analyzer from './analyzer';
+import fs from 'fs';
+import stream from 'stream';
+import util from 'util';
+import Command from '@moneyforward/command';
+import StaticCodeAnalyzer, { AnalyzerConstructorParameter} from '@moneyforward/sca-action-core';
+import { transform } from '@moneyforward/stream-util';
 
-console.log('::echo::%s', process.env['RUNNER_DEBUG'] === '1' ? 'on' : 'off');
-(async (): Promise<void> => {
-  const files = process.env.INPUT_FILES || '.';
-  const options = JSON.parse(process.env.INPUT_OPTIONS || '["--ext", ".js"]');
-  const workingDirectory = process.env.INPUT_WORKING_DIRECTORY;
-  workingDirectory && process.chdir(workingDirectory);
-  const analyzer = new Analyzer(options);
-  analyzer.reporterTypeNotation = process.env.INPUT_REPORTER_TYPE_NOTATION;
-  process.exitCode = await analyzer.analyze(files);
-})().catch(reason => {
-  console.log(`::error::${String(reason)}`);
-  process.exit(1);
-});
+const debug = util.debuglog('@moneyforward/code-review-action-eslint-plugin');
+
+export default class Analyzer extends StaticCodeAnalyzer {
+  constructor(...args: AnalyzerConstructorParameter[]) {
+    super('npx', ['eslint'].concat((args.length ? args : ['--ext', '.js']).map(String)).concat(['-f', 'unix']), undefined, 2, undefined, 'ESLint');
+  }
+
+  protected async prepare(): Promise<void> {
+    console.log('::group::Installing packages...');
+    try {
+      const [command, args] = fs.existsSync('yarn.lock') ? ['yarn', ['--frozen-lockfile']] : ['npm', ['ci']];
+      await Command.execute(command, args);
+    } finally {
+      console.log('::endgroup::');
+    }
+  }
+
+  protected createTransformStreams(): stream.Transform[] {
+    return [
+      new transform.Lines(),
+      new stream.Transform({
+        objectMode: true,
+        transform: function (warning: string, _encoding, done): void {
+          debug('%s', warning);
+          const regex = /^(.+):(\d+):(\d+): (.+) \[(Error|Warning)(?:|\/(.+))\]$/;
+          const [matches, file, line, column, message, severity, code] = regex.exec(warning) || [];
+          done(null, matches && {
+            file,
+            line,
+            column,
+            message: `${message}${code ? ` (${code})` : ''}`,
+            severity,
+            code
+          });
+        }
+      })
+    ];
+  }
+}

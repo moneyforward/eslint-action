@@ -2,7 +2,7 @@ import { AssertionError } from 'assert';
 import { expect } from 'chai';
 import stream from 'stream';
 import util from 'util';
-import Analyzer from '../src/analyzer'
+import Analyzer from '../src'
 
 describe('Transform', () => {
   it('should return the problem object', async () => {
