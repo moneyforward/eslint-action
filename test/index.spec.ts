@@ -23,12 +23,9 @@ describe('Transform', () => {
         return super.createTransformStreams();
       }
     })();
-    const streams = [stream.Readable.from(text), ...analyzer.createTransformStreams()];
-    await util.promisify(stream.pipeline)(streams);
-    for await (const problem of streams[streams.length - 1]) {
-      expect(problem).to.deep.equal(expected);
-      return;
-    }
+    const transform = analyzer.createTransformStreams()
+      .reduce((previous, current) => previous.pipe(current), stream.Readable.from(text));
+    for await (const problem of transform) return expect(problem).to.deep.equal(expected);
     throw new AssertionError({ message: 'There was no problem to expect.', expected });
   });
 });
