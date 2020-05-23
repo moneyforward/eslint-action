@@ -1,8 +1,10 @@
 import { AssertionError } from 'assert';
 import { expect } from 'chai';
 import stream from 'stream';
-import util from 'util';
+import { reporter } from '@moneyforward/code-review-action';
 import Analyzer from '../src'
+
+type ReporterConstructor = reporter.ReporterConstructor
 
 describe('Transform', () => {
   it('should return the problem object', async () => {
@@ -16,6 +18,9 @@ describe('Transform', () => {
     };
     const text = 'src/index.ts:16:29: Missing return type on function. [Warning/@typescript-eslint/explicit-function-return-type]';
     const analyzer = new (class extends Analyzer {
+      get Reporter(): ReporterConstructor {
+        throw new Error("Method not implemented.");
+      }
       public constructor() {
         super();
       }

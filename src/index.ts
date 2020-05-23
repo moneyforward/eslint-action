@@ -1,13 +1,16 @@
 import fs from 'fs';
 import stream from 'stream';
 import util from 'util';
+import { analyzer } from '@moneyforward/code-review-action';
 import Command from '@moneyforward/command';
-import StaticCodeAnalyzer, { AnalyzerConstructorParameter} from '@moneyforward/sca-action-core';
+import StaticCodeAnalyzer from '@moneyforward/sca-action-core';
 import { transform } from '@moneyforward/stream-util';
+
+type AnalyzerConstructorParameter = analyzer.AnalyzerConstructorParameter;
 
 const debug = util.debuglog('@moneyforward/code-review-action-eslint-plugin');
 
-export default class Analyzer extends StaticCodeAnalyzer {
+export default abstract class Analyzer extends StaticCodeAnalyzer {
   constructor(...args: AnalyzerConstructorParameter[]) {
     super('npx', ['eslint'].concat((args.length ? args : ['--ext', '.js']).map(String)).concat(['-f', 'unix']), undefined, 2, undefined, 'ESLint');
   }
